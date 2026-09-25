@@ -4,10 +4,12 @@ name: Watch upstream Snowflake version
 # thetorproject/snowflake-proxy than what's pinned in the Dockerfile, and
 # opens an issue if so. Doesn't touch any code itself — see UPDATING.md
 # for the manual bump steps once a new version is found.
+#
+# Manual trigger only for now (Run workflow, above) — Tor doesn't cut new
+# snowflake-proxy releases often enough to justify a recurring schedule.
+# Add a `schedule:` trigger back here if that changes.
 
 on:
-  schedule:
-    - cron: '0 6 * * 1' # every Monday at 06:00 UTC
   workflow_dispatch:
 
 permissions:
