@@ -18,19 +18,25 @@ Freshly scaffolded? Work the
 guide page, not a file in this repo — read it, don't copy it in.
 
 Keep `README.md` (technical reference for an AI support or administering agent) and
-`instructions.md` (end-user docs) in sync with your changes.
+`instructions.md` (end-user docs) in sync with your changes. This file restates neither:
+whoever changes the package has both, so it carries only what they don't — repo mechanics,
+a change that looks right and is not, where the next thing gets added, a naming trap, a
+build or test invocation particular to this repo.
 
-**Bugs and feature requests are GitHub issues on this repo** — file them as you find them.
+**Fix a defect you spot rather than reporting it** — you have the package open and the
+context to be sure. File **a GitHub issue on this repo** only when the call isn't yours to
+make: you can't pin the cause down, two defensible fixes exist, or it's too large to ride on
+the work in hand. An open issue is a report, not a queue — implement one when you're asked
+to or when it's labelled `Approved`, then close it with `Closes #<n>`.
+
 Don't record work in the repo instead: no `TODO.md`, no `NOTES.md`, no `PLAN.md`. What you
 verified, tried, and decided belongs in the commit message and the PR body.
 
 ## This repo
 
-- **The proxy is the Tor Project's own binary, copied out of `thetorproject/snowflake-proxy`** —
-  don't vendor the Go source or build it here. Upstream's image is `FROM scratch`, which is the
-  only reason the `Dockerfile` re-bases it onto Alpine.
-- **`dashboard/index.cgi` is the whole dashboard** and parses the proxy's hourly summary by
-  field position (`$9` connections, `$16` down, `$21` up); check that line against upstream's
+- **Take the proxy from `thetorproject/snowflake-proxy`'s image** — don't vendor the Go source
+  or build it here; the `Dockerfile` only re-bases the binary.
+- **`dashboard/index.cgi` parses the proxy's hourly summary by field position** (`$9`
+  connections, `$16` down, `$21` up); check that line against upstream's
   `common/event/interface.go` on every version bump.
-- **The proxy has no listening port**, so its health check probes the `-metrics` endpoint on
-  loopback 9999. Removing that flag removes the only readiness signal.
+- **Don't drop `-metrics`** — the loopback 9999 listener is the proxy's only readiness signal.

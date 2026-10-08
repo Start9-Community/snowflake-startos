@@ -12,7 +12,7 @@
 [Snowflake](https://snowflake.torproject.org/) is a Tor pluggable transport that gets people in censored networks onto Tor by relaying their traffic through volunteer-run proxies. This package runs the standalone Go proxy from the Tor Project's own image, with every setting left at upstream's defaults, and adds a small web dashboard that turns the proxy's hourly log summaries into NAT type, bandwidth and connection figures.
 
 - **Upstream repo:** <https://gitlab.torproject.org/tpo/anti-censorship/pluggable-transports/snowflake>
-- **Wrapper repo:** <https://github.com/Start9-Community/snowflake-startos-sideloader>
+- **Wrapper repo:** <https://github.com/Start9-Community/snowflake-startos>
 
 ---
 
@@ -48,10 +48,10 @@ Two daemons share one subcontainer:
 
 | Subcontainer | Daemon      | Command                                                              | Purpose                                              |
 | ------------ | ----------- | -------------------------------------------------------------------- | ---------------------------------------------------- |
-| `snowflake`  | `proxy`     | `snowflake-proxy -log /data/snowflake.log -metrics -metrics-address 127.0.0.1` | The proxy itself                             |
+| `snowflake`  | `proxy`     | `snowflake-proxy -log /data/snowflake.log -metrics -metrics-address 127.0.0.1 -ephemeral-ports-range 30000:30249` | The proxy itself |
 | `snowflake`  | `dashboard` | `busybox-extras httpd -f -p 80 -h /www`                              | Serves the stats page, rendered per request by a CGI |
 
-The proxy runs with upstream's defaults — broker, STUN servers, relay pattern, unlimited capacity, hourly summaries — plus two flags. `-log` makes it append its event log (start, NAT type, hourly summary) to a file on the data volume as well as to stderr, which is what the dashboard reads; `-metrics` binds a Prometheus endpoint on loopback port 9999, which is what the health check probes, since the proxy opens no other port. Nothing reads the metrics beyond that.
+The proxy runs with upstream's defaults — broker, STUN servers, relay pattern, unlimited capacity, hourly summaries — plus three flags. `-log` makes it append its event log (start, NAT type, hourly summary) to a file on the data volume as well as to stderr, which is what the dashboard reads; `-metrics` binds a Prometheus endpoint on loopback port 9999, which is what the health check probes, since the proxy opens no other TCP port. Nothing reads the metrics beyond that. `-ephemeral-ports-range` pins its WebRTC ports to the range the Proxy Relay Ports interface publishes (see [Network Access and Interfaces](#network-access-and-interfaces)).
 
 The dashboard is `dashboard/index.cgi`, installed as `/www/cgi-bin/index.cgi`. `httpd` runs it for every request to `/`: one `awk` pass over the log produces the page, so it is always current and there is no generator loop. The page refreshes itself every five minutes.
 
