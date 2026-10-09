@@ -7,7 +7,7 @@
 
 ## What you get on StartOS
 
-A Snowflake proxy that starts relaying for censored Tor users the moment the service is running, and a **Dashboard** interface showing what it has done: the NAT type it detected, bandwidth relayed today, this week, this month and all-time, and an hour-by-hour chart of the last day.
+A Snowflake proxy that starts relaying for censored Tor users the moment the service is running, and a **Dashboard** interface showing what it has done: the NAT type it detected and how long the proxy has been up, bandwidth relayed in the last 24 hours, the last 7 days and all-time with the daily average (each split into down and up), an hour-by-hour chart of the last day, and a weekday-by-hour heatmap of when your proxy is busiest.
 
 There is nothing to configure and no account to make. The proxy never learns what anyone is browsing, and the traffic it carries leaves the Tor network from a Tor bridge — not from your address. Forwarding a port range on your router (see NAT type below) is optional and only improves how many clients the proxy can help; the service runs and relays clients without it.
 
@@ -29,3 +29,5 @@ To turn a restricted proxy into an unrestricted one, open this service's **Proxy
 ### Reading the figures
 
 Everything on the dashboard comes from the proxy's own hourly summaries, so a figure is up to an hour behind and "0 connections" in the first hour is normal. The history lives on this server and survives restarts and updates.
+
+The 24-hour and 7-day figures are rolling windows ending now, and the arrow next to each compares it with the window before; it appears once the history covers both. The seven-day sparkline uses the same rolling window, with a bucket for each 24 hours even if no summaries were logged. The daily average and its sparkline use logged hours, not elapsed calendar days. The heatmap groups summaries by the weekday and hour in which they end, in UTC, rather than the hour in which traffic occurred; empty cells have no summaries yet. The status line at the top shows the NAT type and live uptime, and turns amber if no hourly summary has arrived for two hours.
