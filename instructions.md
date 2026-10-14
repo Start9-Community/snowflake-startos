@@ -22,9 +22,9 @@ The NAT type appears a minute or so after each start. Bandwidth and connection f
 
 ### NAT type
 
-**unrestricted** means clients behind strict NATs can reach your proxy, which is the most useful kind of proxy to run. **restricted** means only clients with permissive NATs can; the proxy still helps, just fewer people.
+**open** means clients behind strict NATs can reach your proxy, which is the most useful kind of proxy to run. **moderate** means only clients behind more permissive NATs can; the proxy still helps, just fewer people. **strict** means neither of the proxy's two test connections got through, so it can serve only the clients with the most permissive NATs. Proxies older than Snowflake 2.15 reported **unrestricted** and **restricted** instead; older log entries on the dashboard may still use those words.
 
-To turn a restricted proxy into an unrestricted one, open this service's **Proxy Relay Ports** interface and enable the public IP address of the gateway this server's internet traffic leaves through. If that gateway is your router, forward UDP 30000–30249 to this server there. Then restart the service; the NAT Type tile should read **unrestricted** a minute or so later.
+To turn a moderate or strict proxy into an open one, open this service's **Proxy Relay Ports** interface and enable the public IP address of the gateway this server's internet traffic leaves through. If that gateway is your router, forward UDP 30000–30249 to this server there. Then restart the service; the NAT type in the status line should read **open** a minute or so later.
 
 ### Reading the figures
 

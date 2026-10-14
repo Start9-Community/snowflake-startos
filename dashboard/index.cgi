@@ -26,7 +26,7 @@ cat <<'HTML'
     color-scheme: dark;
     --bg: #07090c; --panel: #0d1117; --panel2: #10151c; --line: #1c2430;
     --fg: #d7dde5; --dim: #6b7685; --faint: #2a3340;
-    --cyan: #22d3ee; --magenta: #e879f9; --green: #4ade80; --amber: #fbbf24;
+    --cyan: #22d3ee; --magenta: #e879f9; --green: #4ade80; --amber: #fbbf24; --red: #f87171;
     --koamaru: #333366; --koamaru-light: #9999d6;
     --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
   }
@@ -266,8 +266,9 @@ function trend(id, cur, prev, hours, label) {
 const fresh = rows.length && now - lastT < 2 * H;
 $("dot").classList.toggle("stale", !fresh);
 $("state").textContent = !rows.length ? "Waiting for first summary" : fresh ? "Relay up" : "No recent summary";
-const natOk = /^unrestricted$/i.test(NAT), natWarn = /^restricted$/i.test(NAT);
-const natColor = natOk ? "var(--green)" : natWarn ? "var(--amber)" : "var(--dim)";
+// Snowflake 2.15 reports open / moderate / strict; older proxies logged unrestricted / restricted
+const natOk = /^(open|unrestricted)$/i.test(NAT), natWarn = /^(moderate|restricted)$/i.test(NAT), natBad = /^strict$/i.test(NAT);
+const natColor = natOk ? "var(--green)" : natWarn ? "var(--amber)" : natBad ? "var(--red)" : "var(--dim)";
 $("nat-strip").textContent = NAT.toLowerCase(); $("nat-strip").style.color = natColor;
 if (NAT_TS) $("nat-strip").title = "detected " + NAT_TS.replace("T", " ");
 $("gen").textContent = GENERATED.replace("T", " ");

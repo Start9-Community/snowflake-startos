@@ -84,7 +84,7 @@ Two interfaces. The proxy listens on a range of UDP ports (`-ephemeral-ports-ran
 
 The dashboard is bound on the `ui-multi` MultiHost over plain HTTP and is not masked; it's read-only and holds nothing sensitive, but does reveal that this server runs a Snowflake proxy and how much it relays. The proxy range is bound separately on its own `proxy-udp` MultiHost via `bindPortRange`/`createRangeInterface`.
 
-The proxy makes outbound connections to the Snowflake broker (HTTPS) and to STUN servers to learn its public address and NAT type, plus outbound WebSocket to the Snowflake bridge it relays clients to; WebRTC (UDP, within the ephemeral range above) carries the actual relayed traffic and is negotiated in both directions with clients. None of this needs port forwarding to work — the proxy runs and relays clients fine without it — but a NAT that lets UDP in freely ("unrestricted" on the dashboard) can also serve clients whose own NAT is restrictive, and is worth having if the router allows it.
+The proxy makes outbound connections to the Snowflake broker (HTTPS) and to STUN servers to learn its public address and NAT type, plus outbound WebSocket to the Snowflake bridge it relays clients to; WebRTC (UDP, within the ephemeral range above) carries the actual relayed traffic and is negotiated in both directions with clients. None of this needs port forwarding to work — the proxy runs and relays clients fine without it — but a NAT that lets UDP in freely ("open" on the dashboard; "unrestricted" before Snowflake 2.15) can also serve clients whose own NAT is restrictive, and is worth having if the router allows it.
 
 ## Installation and First-Run Flow
 
