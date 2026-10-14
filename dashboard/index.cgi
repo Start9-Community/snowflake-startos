@@ -1,12 +1,14 @@
 #!/bin/sh
 # Renders the stats page from the proxy's log: its hourly "In the last 1h0m0s,
 # there were N completed successful connections. Traffic Relayed ↓ X KB (…),
-# ↑ Y KB (…)." summaries, the NAT type it detects, and its start line.
+# ↑ Y KB (…)." summaries, the NAT type it detects, and its start line; plus the
+# per-country connection counters from its loopback metrics endpoint.
 #
 # awk only extracts the data; every figure on the page (rolling windows,
 # trends, daily totals, the weekday x hour heatmap) is computed by the page's
 # script from that one list of hourly summaries, so they always agree.
 LOG_FILE="${LOG_FILE:-/data/snowflake.log}"
+METRICS_URL="${METRICS_URL:-http://127.0.0.1:9999/internal/metrics}"
 
 printf 'Content-Type: text/html; charset=utf-8\r\n\r\n'
 
@@ -56,7 +58,7 @@ cat <<'HTML'
   h1 .acc { color: var(--cyan); }
   .sub { color: var(--dim); font: 12px var(--mono); margin-bottom: 18px; }
 
-  .grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); margin-bottom: 12px; }
+  .grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(min(190px, 100%), 1fr)); margin-bottom: 12px; }
   .card { position: relative; background: linear-gradient(180deg, var(--panel2), var(--panel));
     border: 1px solid var(--line); border-left: 2px solid var(--rail, var(--cyan)); padding: 12px 14px; min-height: 108px; }
   .card::before, .card::after { content: ""; position: absolute; width: 10px; height: 10px;
@@ -78,7 +80,7 @@ cat <<'HTML'
   .ud b { font-weight: 600; color: var(--fg); }
   .ud .dn { color: var(--cyan); } .ud .upl { color: var(--magenta); }
 
-  .grid.compact { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+  .grid.compact { grid-template-columns: repeat(auto-fit, minmax(min(200px, 100%), 1fr)); }
   .card.mini { min-height: 0; padding: 9px 12px; }
   .card.mini .lbl { margin-bottom: 6px; }
   .card.mini .val { font-size: 18px; }
@@ -103,6 +105,18 @@ cat <<'HTML'
   .heat .na { outline: 1px dashed var(--line); outline-offset: -1px; }
   .legend { display: flex; gap: 3px; align-items: center; font: 10px var(--mono); color: var(--dim); margin-top: 8px; justify-content: flex-end; }
   .legend div { width: 11px; height: 11px; }
+
+  .cty { columns: 3 280px; column-gap: 24px; }
+  .cty .r { break-inside: avoid; margin-bottom: 4px; display: grid; grid-template-columns: 22px minmax(0, 1fr) 72px 100px;
+    gap: 8px; align-items: center; font: 12px var(--mono); }
+  .cty .empty { column-span: all; }
+  .cty .f { font-size: 15px; line-height: 1; text-align: center; }
+  .cty .n { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .cty .n i { font-style: normal; color: var(--dim); margin-left: 6px; }
+  .cty .b { height: 6px; background: var(--faint); }
+  .cty .b div { height: 100%; background: linear-gradient(90deg, #0e7490, var(--cyan)); }
+  .cty .v { font-variant-numeric: tabular-nums; color: var(--dim); text-align: right; white-space: nowrap; }
+  .cty .v b { color: var(--fg); font-weight: 600; }
 
   footer { font: 11px var(--mono); color: var(--faint); margin-top: 16px; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
 </style>
@@ -167,10 +181,10 @@ cat <<'HTML'
 
   <div class="panel">
     <div class="phead">
-      <div class="ptitle"><span>▸</span>Bandwidth · last 24h</div>
-      <div class="pmeta" id="chartmeta"></div>
+      <div class="ptitle"><span>▸</span>Clients · by country</div>
+      <div class="pmeta" id="ctymeta"></div>
     </div>
-    <svg id="chart" width="100%" height="190"></svg>
+    <div class="cty" id="cty"></div>
   </div>
 
   <div class="panel">
@@ -206,6 +220,24 @@ END {
   for (i = 1; i <= n; i++) printf "%s%s", (i > 1 ? "," : ""), row[i]
   print "];"
 }' "$( [ -f "$LOG_FILE" ] && printf %s "$LOG_FILE" || printf /dev/null )"
+
+# Per-country connection counters from the proxy's metrics. They count from
+# the proxy's start, so they reset on every restart. Only two-letter codes
+# ('??' for an unknown client IP) and digits reach the script.
+wget -qO- -T 3 "$METRICS_URL" 2>/dev/null | awk '
+/^tor_snowflake_/ { up = 1 }
+/^tor_snowflake_proxy_connections_total\{country="/ {
+  c = $0; sub(/.*country="/, "", c); sub(/".*/, "", c)
+  c = toupper(c); gsub(/[^A-Z]/, "", c); if (length(c) != 2) c = "??"
+  cnt[c] += $NF
+}
+END {
+  printf "// [country code, connections since the proxy started]; null if the metrics were unreachable\nconst COUNTRIES = "
+  if (!up) { print "null;"; exit }
+  printf "["; first = 1
+  for (k in cnt) { printf "%s[\"%s\",%d]", (first ? "" : ","), k, cnt[k]; first = 0 }
+  print "];"
+}'
 
 cat <<'HTML'
 const H = 36e5, NS = "http://www.w3.org/2000/svg";
@@ -271,10 +303,6 @@ const slots = Array(24).fill(null);
 for (const r of d24) { const i = bucketIndex(r.t, 24, H); if (i >= 0 && i < 24) slots[i] = (slots[i] || 0) + r.kb / 1e3; }
 const filled = slots.filter(v => v != null), peakMB = filled.length ? Math.max(...filled) : 0;
 $("peakmbps").innerHTML = (peakMB * 8 / 3600).toFixed(2) + "<small>Mbit/s</small>";
-const totalMB = filled.reduce((a, b) => a + b, 0);
-$("chartmeta").textContent = filled.length
-  ? `Σ ${(totalMB / 1e3).toFixed(2)} GB · peak ${peakMB.toFixed(1)} MB · avg ${(totalMB / filled.length).toFixed(0)} MB/h`
-  : "";
 
 const weekSlots = Array(7).fill(0);
 for (const r of w7) weekSlots[bucketIndex(r.t, 7, 24 * H)] += r.kb / 1e6;
@@ -309,35 +337,35 @@ spark("spark-7d", weekSlots, "#e879f9");
 spark("spark-avg", dailyAverage, "#e879f9");
 spark("spark-all", cumulative, "#e879f9");
 
-function drawChart() {
-  const svg = $("chart"); svg.innerHTML = "";
-  if (!filled.length) {
-    el("text", { x: "50%", y: 95, "text-anchor": "middle" }, svg).textContent =
-      rows.length ? "no summaries in the last 24 hours" : "no hourly summaries logged yet — the first arrives after a full hour";
-    return;
+// clients by country, from the proxy's counters since its last start
+const names = (() => { try { return new Intl.DisplayNames(["en"], { type: "region" }); } catch { return null; } })();
+const flag = cc => String.fromCodePoint(...[...cc].map(ch => 0x1f1a5 + ch.charCodeAt(0)));
+function drawCountries() {
+  const box = $("cty"), since = STARTED ? " since proxy start " + STARTED.slice(0, 16).replace("T", " ") + " UTC" : " since proxy start";
+  if (!COUNTRIES) { box.innerHTML = '<div class="empty">proxy metrics unreachable</div>'; return; }
+  const list = COUNTRIES.filter(([, n]) => n > 0).sort((a, b) => b[1] - a[1]);
+  const total = list.reduce((s, [, n]) => s + n, 0);
+  if (!total) { box.innerHTML = '<div class="empty">no client connections yet' + since + '</div>'; return; }
+  const known = list.filter(([cc]) => cc !== "??").length;
+  $("ctymeta").textContent = `${known} countries · ${total} conn${since}`;
+  const top = list.slice(0, 16), rest = list.slice(16), max = top[0][1];
+  const row = (f, name, code, n) => {
+    const r = document.createElement("div"); r.className = "r";
+    r.innerHTML = `<span class="f"></span><span class="n"></span><div class="b"><div></div></div><span class="v"><b>${n}</b> · ${(n / total * 100).toFixed(1)}%</span>`;
+    r.querySelector(".f").textContent = f;
+    const nm = r.querySelector(".n"); nm.textContent = name;
+    if (code) { const i = document.createElement("i"); i.textContent = code; nm.appendChild(i); }
+    r.querySelector(".b div").style.width = Math.min(100, n / max * 100).toFixed(1) + "%";
+    box.appendChild(r);
+  };
+  for (const [cc, n] of top) {
+    const unknown = cc === "??";
+    let name = cc; if (!unknown && names) try { name = names.of(cc) || cc; } catch {}
+    row(unknown ? "·" : flag(cc), unknown ? "Unknown" : name, unknown ? "??" : cc, n);
   }
-  const W = svg.clientWidth, Ht = 190, L = 44, B = 22, T = 8, cw = (W - L) / 24;
-  const step = peakMB > 400 ? 100 : peakMB > 40 ? 10 : 1, top = Math.max(step, Math.ceil(peakMB / step) * step);
-  for (let i = 0; i <= 4; i++) {
-    const y = T + (Ht - T - B) * i / 4;
-    el("line", { x1: L, x2: W, y1: y, y2: y, stroke: "#1c2430", "stroke-dasharray": i === 4 ? "" : "2 4" }, svg);
-    el("text", { x: L - 8, y: y + 3, "text-anchor": "end" }, svg).textContent = +(top * (1 - i / 4)).toFixed(1) + "M";
-  }
-  const g = el("linearGradient", { id: "bg", x1: 0, y1: 0, x2: 0, y2: 1 }, el("defs", {}, svg));
-  el("stop", { offset: 0, "stop-color": "#22d3ee" }, g); el("stop", { offset: 1, "stop-color": "#0e7490", "stop-opacity": .6 }, g);
-  slots.forEach((v, i) => {
-    const x = L + i * cw + cw * .18;
-    if (i % 6 === 0 || i === 23)
-      el("text", { x: i === 23 ? W - 2 : x + cw * .32, y: Ht - 6, "text-anchor": i === 23 ? "end" : "middle" }, svg).textContent = i === 23 ? "now" : `-${24 - i}h`;
-    if (v == null) return;
-    const h = (Ht - T - B) * v / top, isPeak = v === peakMB;
-    const r = el("rect", { x, y: Ht - B - h, width: cw * .64, height: Math.max(h, 1), fill: isPeak ? "#9999d6" : "url(#bg)" }, svg);
-    if (isPeak) r.setAttribute("style", "filter: drop-shadow(0 0 6px rgba(153,153,214,.75))");
-    const end = new Date(now - (23 - i) * H).toISOString().slice(11, 13);
-    el("title", {}, r).textContent = `hour ending ~${end}:00 UTC · ${v.toFixed(1)} MB · ${(v * 8 / 3600).toFixed(2)} Mbit/s`;
-  });
+  if (rest.length) row("+", `${rest.length} more`, "", rest.reduce((s, [, n]) => s + n, 0));
 }
-drawChart(); addEventListener("resize", drawChart);
+drawCountries();
 
 // heatmap: average MB per weekday x hour (UTC); Deep Koamaru ramp
 const sumH = Array.from({ length: 7 }, () => Array(24).fill(0)), cnt = Array.from({ length: 7 }, () => Array(24).fill(0));

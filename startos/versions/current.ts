@@ -1,18 +1,18 @@
 import { IMPOSSIBLE, VersionInfo } from '@start9labs/start-sdk'
 
 export const current = VersionInfo.of({
-  version: '2.14.1:6',
+  version: '2.14.1:7',
   releaseNotes: {
     en_US:
-      'Restarting Snowflake while it is still starting stops every process of the previous run.',
+      'The dashboard shows which countries its clients connect from, in place of the hour-by-hour chart of the last day, and fits narrow phone screens.',
     es_ES:
-      'Reiniciar Snowflake mientras aún se está iniciando detiene todos los procesos de la ejecución anterior.',
+      'El panel muestra desde qué países se conectan sus clientes, en lugar del gráfico hora por hora del último día, y se adapta a pantallas de móvil estrechas.',
     de_DE:
-      'Ein Neustart von Snowflake, während es noch startet, beendet alle Prozesse des vorherigen Laufs.',
+      'Das Dashboard zeigt, aus welchen Ländern sich die Clients verbinden – anstelle des Stundendiagramms des letzten Tages – und passt auf schmale Handy-Bildschirme.',
     pl_PL:
-      'Ponowne uruchomienie Snowflake w trakcie uruchamiania zatrzymuje wszystkie procesy poprzedniego uruchomienia.',
+      'Panel pokazuje, z jakich krajów łączą się klienci, zamiast godzinowego wykresu ostatniej doby, i mieści się na wąskich ekranach telefonów.',
     fr_FR:
-      "Redémarrer Snowflake pendant son démarrage arrête tous les processus de l'exécution précédente.",
+      "Le tableau de bord affiche les pays d'où se connectent ses clients, à la place du graphique heure par heure du dernier jour, et s'adapte aux écrans étroits des téléphones.",
   },
   migrations: {
     up: async ({ effects }) => {},
