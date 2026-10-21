@@ -1,4 +1,4 @@
-FROM thetorproject/snowflake-proxy:v2.15.1 AS upstream
+FROM thetorproject/snowflake-proxy:v2.15.2 AS upstream
 
 FROM alpine:3.22
 RUN apk add --no-cache busybox-extras
