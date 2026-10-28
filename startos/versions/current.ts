@@ -1,17 +1,18 @@
 import { IMPOSSIBLE, VersionInfo } from '@start9labs/start-sdk'
 
 export const current = VersionInfo.of({
-  version: '2.15.2:1',
+  version: '2.15.3:0',
   releaseNotes: {
     en_US:
-      'Stops trusting certificates from a compromised certificate authority (eMudhra).',
+      'Updates Snowflake to 2.15.3, which fixes a deadlock in proxies with a fixed capacity.',
     es_ES:
-      'Deja de confiar en los certificados de una autoridad de certificación comprometida (eMudhra).',
+      'Actualiza Snowflake a 2.15.3, que corrige un bloqueo en los proxies con capacidad fija.',
     de_DE:
-      'Vertraut Zertifikaten einer kompromittierten Zertifizierungsstelle (eMudhra) nicht mehr.',
+      'Aktualisiert Snowflake auf 2.15.3, das einen Deadlock in Proxys mit fester Kapazität behebt.',
     pl_PL:
-      'Przestaje ufać certyfikatom przejętego urzędu certyfikacji (eMudhra).',
-    fr_FR: `Ne fait plus confiance aux certificats d'une autorité de certification compromise (eMudhra).`,
+      'Aktualizuje Snowflake do wersji 2.15.3, która naprawia zakleszczenie w proxy o stałej przepustowości.',
+    fr_FR:
+      'Met à jour Snowflake vers 2.15.3, qui corrige un interblocage des proxys à capacité fixe.',
   },
   migrations: {
     up: async ({ effects }) => {},
