@@ -35,7 +35,7 @@
 
 ## Image and Container Runtime
 
-One image, built by this repo's `Dockerfile`: the statically linked `proxy` binary and the GeoIP databases are copied out of the Tor Project's published `thetorproject/snowflake-proxy` image into an Alpine base that also carries `busybox-extras` for its `httpd`. Upstream's image is `FROM scratch`, with no shell, which is the only reason the package does not run it as-is. The `Dockerfile` also upgrades the `alpine:3.22` base's CA store, a temporary step that comes out once that base tag is rebuilt on a fixed store.
+One image, built by this repo's `Dockerfile`: the statically linked `proxy` binary and the GeoIP databases are copied out of the Tor Project's published `thetorproject/snowflake-proxy` image into an Alpine base that also carries `busybox-extras` for its `httpd`. Upstream's image is `FROM scratch`, with no shell, which is the only reason the package does not run it as-is.
 
 | Property      | Value                                                 |
 | ------------- | ----------------------------------------------------- |
