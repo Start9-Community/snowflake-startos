@@ -2,8 +2,7 @@
 
 This package builds its image from the Tor Project's published `thetorproject/snowflake-proxy`
 image: the `Dockerfile` copies the `proxy` binary and the GeoIP databases out of it into an
-Alpine base with `busybox-extras` for the dashboard's `httpd`, upgrading the base's
-`ca-certificates-bundle` in the same layer.
+Alpine base with `busybox-extras` for the dashboard's `httpd`.
 
 ## Determining the upstream version
 
