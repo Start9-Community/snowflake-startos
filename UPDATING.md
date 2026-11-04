@@ -19,10 +19,7 @@ The current pin is the `FROM thetorproject/snowflake-proxy:<tag>` line in the `D
 
 1. Change the tag in the `Dockerfile`'s first `FROM` line (keep the leading `v`).
 2. Set `version` in `startos/versions/current.ts` to `X.Y.Z:0`, matching the tag without the `v`.
-3. Rewrite `releaseNotes` in that file for all five locales.
-4. If only the packaging changed, leave the tag alone and increment the revision instead
-   (`2.14.1:0` → `2.14.1:1`).
-5. Check the release notes for a change to the hourly summary line
+3. Check the release notes for a change to the hourly summary line
    (`In the last 1h0m0s, there were N completed successful connections. Traffic Relayed ↓ X KB …`)
    — `dashboard/index.cgi` parses it by field position.
 
