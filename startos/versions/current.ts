@@ -1,18 +1,18 @@
 import { IMPOSSIBLE, VersionInfo } from '@start9labs/start-sdk'
 
 export const current = VersionInfo.of({
-  version: '2.15.3:0',
+  version: '2.15.3:1',
   releaseNotes: {
     en_US:
-      'Updates Snowflake to 2.15.3, which fixes a deadlock in proxies with a fixed capacity.',
+      'Requires StartOS 0.4.1 or later. Fixes memory use growing while the service runs.',
     es_ES:
-      'Actualiza Snowflake a 2.15.3, que corrige un bloqueo en los proxies con capacidad fija.',
+      'Requiere StartOS 0.4.1 o posterior. Corrige el aumento del uso de memoria mientras el servicio está en ejecución.',
     de_DE:
-      'Aktualisiert Snowflake auf 2.15.3, das einen Deadlock in Proxys mit fester Kapazität behebt.',
+      'Erfordert StartOS 0.4.1 oder neuer. Behebt einen während der Laufzeit des Dienstes ansteigenden Speicherverbrauch.',
     pl_PL:
-      'Aktualizuje Snowflake do wersji 2.15.3, która naprawia zakleszczenie w proxy o stałej przepustowości.',
+      'Wymaga StartOS 0.4.1 lub nowszego. Naprawia wzrost zużycia pamięci podczas działania usługi.',
     fr_FR:
-      'Met à jour Snowflake vers 2.15.3, qui corrige un interblocage des proxys à capacité fixe.',
+      "Nécessite StartOS 0.4.1 ou une version ultérieure. Corrige l'augmentation de la consommation de mémoire pendant le fonctionnement du service.",
   },
   migrations: {
     up: async ({ effects }) => {},
